@@ -1,1 +1,2 @@
-export { default as OnboardingForm } from "./OnboardingForm";
+export { OnboardingForm } from "./OnboardingForm";
+export { StepIndicator } from "./StepIndicator";

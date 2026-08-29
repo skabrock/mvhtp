@@ -1,7 +1,9 @@
-import { useId } from "react";
+"use client";
+
+import { useId, useState } from "react";
 import clsx from "clsx";
 
-interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface TextFieldProps extends React.ComponentProps<"input"> {
   label: string;
   error?: string;
 }
@@ -11,28 +13,93 @@ export function TextField({
   error,
   className,
   id,
+  required,
+  disabled,
+  defaultValue,
+  onChange,
+  onFocus,
+  onBlur,
   ...props
 }: TextFieldProps) {
-  const inputId = id ?? useId();
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const [text, setText] = useState(String(defaultValue ?? ""));
+  const [isFocused, setIsFocused] = useState(false);
+  const showClear = isFocused && text.length > 0 && !disabled;
+
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setText(event.target.value);
+    onChange?.(event);
+  }
+
+  function handleFocus(event: React.FocusEvent<HTMLInputElement>) {
+    setIsFocused(true);
+    onFocus?.(event);
+  }
+
+  function handleBlur(event: React.FocusEvent<HTMLInputElement>) {
+    const trimmed = event.target.value.trim();
+    if (trimmed !== text) {
+      event.target.value = trimmed;
+      handleChange(event);
+    }
+    setIsFocused(false);
+    onBlur?.(event);
+  }
+
+  function handleClear() {
+    handleChange?.({
+      target: { value: "" },
+    } as React.ChangeEvent<HTMLInputElement>);
+  }
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1">
       <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
         {label}
+        {required ? (
+          <span aria-hidden="true" className="text-red-600 select-none">
+            {" "}
+            *
+          </span>
+        ) : null}
       </label>
-      <input
-        id={inputId}
-        aria-invalid={Boolean(error)}
-        className={clsx(
-          "h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none transition",
-          "border-neutral-300 placeholder:text-neutral-400",
-          "focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10",
-          "disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
-          error && "border-red-500 focus:border-red-500 focus:ring-red-500/15",
-          className,
-        )}
-        {...props}
-      />
+      <div className="relative">
+        <input
+          {...props}
+          id={inputId}
+          required={required}
+          disabled={disabled}
+          value={text}
+          aria-invalid={Boolean(error)}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className={clsx(
+            "h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none transition",
+            "border-neutral-300 placeholder:text-neutral-400",
+            "focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10",
+            "disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
+            "placeholder:select-none",
+            showClear && "pr-9",
+            error &&
+              "border-red-500 focus:border-red-500 focus:ring-red-500/15",
+            className,
+          )}
+        />
+        {showClear ? (
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={`Clear ${label}`}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={handleClear}
+            className="absolute top-1/2 right-2 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-lg leading-none text-neutral-400 select-none hover:text-neutral-700"
+          >
+            ×
+          </button>
+        ) : null}
+      </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>
   );

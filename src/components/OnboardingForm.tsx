@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { Button, TextField, toast } from "./ui";
 
-export default function OnboardingForm() {
+export function OnboardingForm() {
   const { register, handleSubmit } = useForm();
 
   return (
@@ -12,19 +12,41 @@ export default function OnboardingForm() {
         toast.success("Submitted");
         console.log({ data });
       })}
-      className="flex flex-col gap-5"
     >
-      <h1 className="text-xl font-semibold tracking-tight">Onboarding</h1>
+      <h1 className="text-xl font-bold text-center mb-8">Onboarding Form</h1>
 
-      <div className="grid grid-cols-2 gap-x-2">
-        <TextField label="First Name" {...register("firstName")} />
-        <TextField label="Last Name" {...register("lastName")} />
+      <div className="flex flex-col gap-5">
+        <div className="grid grid-cols-2 gap-x-2">
+          <TextField
+            label="First Name"
+            placeholder="John"
+            required
+            {...register("firstName")}
+          />
+          <TextField
+            label="Last Name"
+            placeholder="Doe"
+            required
+            {...register("lastName")}
+          />
+        </div>
+
+        <TextField
+          label="Phone Number"
+          type="tel"
+          placeholder="+1 (416) 555-0142"
+          required
+          {...register("phoneNum")}
+        />
+        <TextField
+          label="Corporation Number"
+          placeholder="424242420"
+          required
+          {...register("corpNum")}
+        />
+
+        <Button type="submit">Submit</Button>
       </div>
-
-      <TextField label="Phone Number" type="tel" {...register("phoneNum")} />
-      <TextField label="Corporation Number" {...register("corpNum")} />
-
-      <Button type="submit">Submit</Button>
     </form>
   );
 }
