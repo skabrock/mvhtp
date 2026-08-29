@@ -2,6 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { ArrowRight } from "lucide-react";
+import { CORP_NUM_LENGTH } from "@/constants";
+import { useCheckCorporationNumber } from "@/hooks";
 import { onboardingSchema, type OnboardingValues } from "@/schemas";
 import {
   assistCACode,
@@ -9,21 +12,31 @@ import {
   digitsWithLeadingPlus,
   personName,
 } from "@/lib";
+import { CorpNumStatus } from "./CorpNumStatus";
 import { Button, TextField, toast } from "./ui";
 
 export function OnboardingForm() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
   });
 
+  const corpQuery = useCheckCorporationNumber(watch("corpNum") ?? "");
+  const corpError =
+    corpQuery.error instanceof Error ? corpQuery.error.message : undefined;
+
   return (
     <form
       noValidate
       onSubmit={handleSubmit((data) => {
+        if (!corpQuery.isSuccess) {
+          toast.error("Enter a valid corporation number");
+          return;
+        }
         toast.success("Submitted");
         console.log({ data });
       })}
@@ -66,12 +79,24 @@ export function OnboardingForm() {
           required
           inputMode="numeric"
           formats={[digitsOnly]}
-          maxLength={9}
-          error={errors.corpNum?.message}
+          maxLength={CORP_NUM_LENGTH}
+          error={errors.corpNum?.message ?? corpError}
           {...register("corpNum")}
+          slots={{
+            afterLabel: (
+              <CorpNumStatus
+                isFetching={corpQuery.isFetching}
+                isSuccess={corpQuery.isSuccess}
+                isError={corpQuery.isError}
+              />
+            ),
+          }}
         />
 
-        <Button type="submit">Submit</Button>
+        <Button type="submit" disabled={corpQuery.isFetching}>
+          Submit
+          <ArrowRight className="size-4" aria-hidden />
+        </Button>
       </div>
     </form>
   );

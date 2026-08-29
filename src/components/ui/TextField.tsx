@@ -2,12 +2,18 @@
 
 import { useId, useState } from "react";
 import clsx from "clsx";
-import type { InputSanitizer } from "@/lib";
+import { X } from "lucide-react";
+import type { TextInputFormat } from "@/lib";
+
+interface TextFieldSlots {
+  afterLabel?: React.ReactNode;
+}
 
 interface TextFieldProps extends React.ComponentProps<"input"> {
   label: string;
   error?: string;
-  formats?: InputSanitizer[];
+  formats?: TextInputFormat[];
+  slots?: TextFieldSlots;
 }
 
 export function TextField({
@@ -18,6 +24,7 @@ export function TextField({
   required,
   disabled,
   formats,
+  slots,
   maxLength,
   defaultValue,
   onChange,
@@ -65,15 +72,18 @@ export function TextField({
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
-        {label}
-        {required ? (
-          <span aria-hidden="true" className="text-red-600 select-none">
-            {" "}
-            *
-          </span>
-        ) : null}
-      </label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={inputId} className="text-sm font-medium text-neutral-800">
+          {label}
+          {required ? (
+            <span aria-hidden="true" className="text-red-600 select-none">
+              {" "}
+              *
+            </span>
+          ) : null}
+        </label>
+        {slots?.afterLabel}
+      </div>
       <div className="group relative">
         <input
           {...props}
@@ -106,11 +116,11 @@ export function TextField({
             onMouseDown={(event) => event.preventDefault()}
             onClick={handleClear}
             className={clsx(
-              "absolute top-1/2 right-2 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-lg leading-none text-neutral-400 select-none hover:text-neutral-700",
+              "absolute top-1/2 right-2 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-neutral-400 transition hover:text-neutral-700",
               isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-100",
             )}
           >
-            ×
+            <X className="size-3.5" />
           </button>
         ) : null}
       </div>

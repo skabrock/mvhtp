@@ -1,9 +1,11 @@
-export { normalizeCanadianPhone } from "./phone";
-export { sanitizePersonName, isPersonName } from "./name";
+export { apiRequest } from "./apiRequest";
+export { normalizeCanadianPhone } from "./normalizeCanadianPhone";
+export { sanitizePersonName } from "./sanitizePersonName";
+export { isPersonName } from "./isPersonName";
 export {
-  type InputSanitizer,
+  type TextInputFormat,
   digitsOnly,
   digitsWithLeadingPlus,
   assistCACode,
   personName,
-} from "./sanitizers";
+} from "./formatTextInput";

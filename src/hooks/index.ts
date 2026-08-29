@@ -1,0 +1,1 @@
+export { useCheckCorporationNumber } from "./useCheckCorporationNumber";

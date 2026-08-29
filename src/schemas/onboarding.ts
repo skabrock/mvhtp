@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isPersonName, normalizeCanadianPhone } from "@/lib";
+import { CORP_NUM_LENGTH } from "@/constants";
 
 const personName = (label: string) =>
   z
@@ -24,7 +25,10 @@ export const onboardingSchema = z.object({
     .string()
     .trim()
     .min(1, "Corporation number is required")
-    .regex(/^\d{9}$/, "Corporation number must be 9 digits"),
+    .regex(
+      new RegExp(`^\\d{${CORP_NUM_LENGTH}}$`),
+      `Corporation number must be ${CORP_NUM_LENGTH} digits`,
+    ),
 });
 
 export type OnboardingValues = z.infer<typeof onboardingSchema>;
