@@ -9,6 +9,14 @@ npm run dev
 
 Or with bun: `bun install` then `bun dev`.
 
+## Test
+
+```bash
+npm test
+```
+
+Or `bun run test`.
+
 ## Stack
 
 - **Next.js 16**
@@ -19,5 +27,5 @@ Or with bun: `bun install` then `bun dev`.
 - **TanStack Query**
 - **Sonner**
 - **Lucide React**
-- **clsx**
+- **Jest** + **React Testing Library**
 

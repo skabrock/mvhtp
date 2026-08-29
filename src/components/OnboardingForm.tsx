@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
 import { CORP_NUM_LENGTH, PHONE_MAX_LENGTH } from "@/constants";
-import { useCheckCorpNumQuery, useSubmitOnboardingMutation } from "@/hooks";
+import { useCheckCorpNum, useSubmitOnboardingMutation } from "@/hooks";
 import { onboardingSchema, type OnboardingValues } from "@/schemas";
 import type { ProfileDetails } from "@/api";
 import {
@@ -36,32 +36,34 @@ export function OnboardingForm() {
   const {
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors },
   } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: emptyValues,
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
 
-  const corpQuery = useCheckCorpNumQuery(watch("corpNum"));
-  const submitProfile = useSubmitOnboardingMutation();
-  const corpError =
-    corpQuery.error instanceof Error ? corpQuery.error.message : undefined;
+  const checkCorp = useCheckCorpNum();
+  const onboardingSubmit = useSubmitOnboardingMutation();
 
-  function submit(data: OnboardingValues) {
-    if (!corpQuery.isSuccess) {
+  function formSubmit(data: OnboardingValues) {
+    if (!checkCorp.isSuccess) {
       toast.error("Enter a valid corporation number");
       return;
     }
 
-    submitProfile.mutate(normalizeSubmitData(data), {
-      onSuccess: () => reset(emptyValues),
+    onboardingSubmit.mutate(normalizeSubmitData(data), {
+      onSuccess: () => {
+        reset(emptyValues);
+        checkCorp.reset();
+      },
     });
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(submit)}>
+    <form noValidate onSubmit={handleSubmit(formSubmit)}>
       <h1 className="text-xl font-bold text-center mb-8">Onboarding Form</h1>
 
       <div className="flex flex-col gap-5">
@@ -101,22 +103,30 @@ export function OnboardingForm() {
           inputMode="numeric"
           formats={[digitsOnly]}
           maxLength={CORP_NUM_LENGTH}
-          error={errors.corpNum?.message ?? corpError}
-          {...register("corpNum")}
+          error={errors.corpNum?.message ?? checkCorp.error?.message}
           slots={{
             afterLabel: (
               <CorpNumStatus
-                isFetching={corpQuery.isFetching}
-                isSuccess={corpQuery.isSuccess}
-                isError={corpQuery.isError}
+                isFetching={checkCorp.isPending}
+                isSuccess={checkCorp.isSuccess}
+                isError={checkCorp.isError}
               />
             ),
           }}
+          {...register("corpNum", {
+            onChange: checkCorp.reset,
+            onBlur: (event) => {
+              const corpNum = event.target.value;
+              if (corpNum.length === CORP_NUM_LENGTH) {
+                checkCorp.mutate(corpNum);
+              }
+            },
+          })}
         />
 
         <Button
           type="submit"
-          disabled={corpQuery.isFetching || submitProfile.isPending}
+          disabled={checkCorp.isPending || onboardingSubmit.isPending}
         >
           Submit
           <ArrowRight className="size-4" aria-hidden />

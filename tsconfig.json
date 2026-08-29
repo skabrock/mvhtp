@@ -28,7 +28,9 @@
       "@/api": ["./src/api/index.ts"],
       "@/api/*": ["./src/api/*"],
       "@/constants": ["./src/constants/index.ts"],
-      "@/constants/*": ["./src/constants/*"]
+      "@/constants/*": ["./src/constants/*"],
+      "@/test-utils": ["./src/test-utils/index.ts"],
+      "@/test-utils/*": ["./src/test-utils/*"]
     }
   },
   "include": [
