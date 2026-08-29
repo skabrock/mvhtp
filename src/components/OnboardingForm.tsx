@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
 import { CORP_NUM_LENGTH } from "@/constants";
-import { useCheckCorporationNumber } from "@/hooks";
+import { useCheckCorpNumQuery, useSubmitOnboardingMutation } from "@/hooks";
 import { onboardingSchema, type OnboardingValues } from "@/schemas";
 import {
   assistCACode,
@@ -20,26 +20,37 @@ export function OnboardingForm() {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      phoneNum: "",
+      corpNum: "",
+    },
   });
 
-  const corpQuery = useCheckCorporationNumber(watch("corpNum") ?? "");
+  const corpQuery = useCheckCorpNumQuery(watch("corpNum") ?? "");
+  const submitProfile = useSubmitOnboardingMutation();
   const corpError =
     corpQuery.error instanceof Error ? corpQuery.error.message : undefined;
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit((data) => {
-        if (!corpQuery.isSuccess) {
-          toast.error("Enter a valid corporation number");
-          return;
-        }
-        toast.success("Submitted");
-        console.log({ data });
-      })}
+      onSubmit={handleSubmit((data) =>
+        submitProfile.mutate(
+          {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            corporationNumber: data.corpNum,
+            phone: data.phoneNum,
+          },
+          { onSuccess: () => reset() },
+        ),
+      )}
     >
       <h1 className="text-xl font-bold text-center mb-8">Onboarding Form</h1>
 
@@ -93,7 +104,10 @@ export function OnboardingForm() {
           }}
         />
 
-        <Button type="submit" disabled={corpQuery.isFetching}>
+        <Button
+          type="submit"
+          disabled={corpQuery.isFetching || submitProfile.isPending}
+        >
           Submit
           <ArrowRight className="size-4" aria-hidden />
         </Button>

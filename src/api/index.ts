@@ -12,3 +12,14 @@ export function checkCorporationNumber(corporationNumber: string) {
     `${API_BASE}/corporation-number/${corporationNumber}`,
   );
 }
+
+export interface ProfileDetails {
+  firstName: string;
+  lastName: string;
+  corporationNumber: string;
+  phone: string;
+}
+
+export function submitProfileDetails(body: ProfileDetails) {
+  return apiRequest("POST", `${API_BASE}/profile-details`, body);
+}
