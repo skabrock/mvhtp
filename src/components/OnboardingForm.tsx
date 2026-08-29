@@ -3,7 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { onboardingSchema, type OnboardingValues } from "@/schemas";
-import { assistCACode, digitsOnly, digitsWithLeadingPlus, personName } from "@/lib";
+import {
+  assistCACode,
+  digitsOnly,
+  digitsWithLeadingPlus,
+  personName,
+} from "@/lib";
 import { Button, TextField, toast } from "./ui";
 
 export function OnboardingForm() {

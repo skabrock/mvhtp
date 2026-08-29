@@ -29,7 +29,7 @@ export function TextField({
   const inputId = id ?? generatedId;
   const [text, setText] = useState(String(defaultValue ?? ""));
   const [isFocused, setIsFocused] = useState(false);
-  const showClear = isFocused && text.length > 0 && !disabled;
+  const showClear = text.length > 0 && !disabled;
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     let value = event.target.value;
@@ -74,7 +74,7 @@ export function TextField({
           </span>
         ) : null}
       </label>
-      <div className="relative">
+      <div className="group relative">
         <input
           {...props}
           id={inputId}
@@ -105,7 +105,10 @@ export function TextField({
             aria-label={`Clear ${label}`}
             onMouseDown={(event) => event.preventDefault()}
             onClick={handleClear}
-            className="absolute top-1/2 right-2 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-lg leading-none text-neutral-400 select-none hover:text-neutral-700"
+            className={clsx(
+              "absolute top-1/2 right-2 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded text-lg leading-none text-neutral-400 select-none hover:text-neutral-700",
+              isFocused ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+            )}
           >
             ×
           </button>
