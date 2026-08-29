@@ -7,7 +7,7 @@ import { submitProfileDetails } from "@/api";
 export function useSubmitOnboardingMutation() {
   return useMutation({
     mutationFn: submitProfileDetails,
-    onSuccess: () => toast.success("Submitted"),
+    onSuccess: () => toast.success("Profile submitted"),
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Submission failed");
     },

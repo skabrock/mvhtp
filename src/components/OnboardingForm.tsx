@@ -3,9 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
-import { CORP_NUM_LENGTH } from "@/constants";
+import { CORP_NUM_LENGTH, PHONE_MAX_LENGTH } from "@/constants";
 import { useCheckCorpNumQuery, useSubmitOnboardingMutation } from "@/hooks";
 import { onboardingSchema, type OnboardingValues } from "@/schemas";
+import type { ProfileDetails } from "@/api";
 import {
   assistCACode,
   digitsOnly,
@@ -14,6 +15,22 @@ import {
 } from "@/lib";
 import { CorpNumStatus } from "./CorpNumStatus";
 import { Button, TextField, toast } from "./ui";
+
+const emptyValues: OnboardingValues = {
+  firstName: "",
+  lastName: "",
+  phoneNum: "",
+  corpNum: "",
+};
+
+function normalizeSubmitData(data: OnboardingValues): ProfileDetails {
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    corporationNumber: data.corpNum,
+    phone: data.phoneNum,
+  };
+}
 
 export function OnboardingForm() {
   const {
@@ -24,34 +41,27 @@ export function OnboardingForm() {
     formState: { errors },
   } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      phoneNum: "",
-      corpNum: "",
-    },
+    defaultValues: emptyValues,
   });
 
-  const corpQuery = useCheckCorpNumQuery(watch("corpNum") ?? "");
+  const corpQuery = useCheckCorpNumQuery(watch("corpNum"));
   const submitProfile = useSubmitOnboardingMutation();
   const corpError =
     corpQuery.error instanceof Error ? corpQuery.error.message : undefined;
 
+  function submit(data: OnboardingValues) {
+    if (!corpQuery.isSuccess) {
+      toast.error("Enter a valid corporation number");
+      return;
+    }
+
+    submitProfile.mutate(normalizeSubmitData(data), {
+      onSuccess: () => reset(emptyValues),
+    });
+  }
+
   return (
-    <form
-      noValidate
-      onSubmit={handleSubmit((data) =>
-        submitProfile.mutate(
-          {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            corporationNumber: data.corpNum,
-            phone: data.phoneNum,
-          },
-          { onSuccess: () => reset() },
-        ),
-      )}
-    >
+    <form noValidate onSubmit={handleSubmit(submit)}>
       <h1 className="text-xl font-bold text-center mb-8">Onboarding Form</h1>
 
       <div className="flex flex-col gap-5">
@@ -80,7 +90,7 @@ export function OnboardingForm() {
           placeholder="+14165550142"
           required
           formats={[digitsWithLeadingPlus, assistCACode]}
-          maxLength={12}
+          maxLength={PHONE_MAX_LENGTH}
           error={errors.phoneNum?.message}
           {...register("phoneNum")}
         />

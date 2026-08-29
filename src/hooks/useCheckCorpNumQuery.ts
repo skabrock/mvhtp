@@ -12,6 +12,7 @@ export function useCheckCorpNumQuery(corporationNumber: string) {
     queryFn: () => checkCorporationNumber(corporationNumber),
     enabled,
     retry: false,
-    staleTime: 60_000,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

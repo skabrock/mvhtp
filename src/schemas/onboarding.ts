@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isPersonName, normalizeCanadianPhone } from "@/lib";
-import { CORP_NUM_LENGTH } from "@/constants";
+import { CORP_NUM_LENGTH, PHONE_MAX_LENGTH } from "@/constants";
 
 const personName = (label: string) =>
   z
@@ -20,7 +20,7 @@ export const onboardingSchema = z.object({
     .trim()
     .min(1, "Phone number is required")
     .transform(normalizeCanadianPhone)
-    .pipe(z.string().min(12, "Invalid phone number")),
+    .pipe(z.string().min(PHONE_MAX_LENGTH, "Invalid phone number")),
   corpNum: z
     .string()
     .trim()

@@ -23,7 +23,7 @@ export function TextField({
   id,
   required,
   disabled,
-  formats,
+  formats = [],
   slots,
   maxLength,
   defaultValue,
@@ -40,7 +40,7 @@ export function TextField({
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     let value = event.target.value;
-    for (const format of formats ?? []) {
+    for (const format of formats) {
       value = format(value, text);
     }
     if (maxLength) value = value.slice(0, Number(maxLength));
@@ -65,7 +65,7 @@ export function TextField({
   }
 
   function handleClear() {
-    handleChange?.({
+    handleChange({
       target: { value: "" },
     } as React.ChangeEvent<HTMLInputElement>);
   }

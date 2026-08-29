@@ -18,6 +18,15 @@ export function CorpNumStatus({
     <span
       role="status"
       aria-hidden={!visible}
+      aria-label={
+        isFetching
+          ? "Validating corporation number"
+          : isSuccess
+            ? "Corporation number is valid"
+            : isError
+              ? "Corporation number is invalid"
+              : undefined
+      }
       className={clsx(
         "inline-flex size-4 items-center justify-center transition duration-200 ease-out",
         visible ? "scale-100 opacity-100" : "scale-50 opacity-0",
