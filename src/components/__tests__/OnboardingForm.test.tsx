@@ -38,7 +38,7 @@ describe("OnboardingForm", () => {
     expect(submitProfile).not.toHaveBeenCalled();
   });
 
-  it("shows an error when the corporation number is invalid", async () => {
+  it("checks a complete corporation number and shows an error", async () => {
     checkCorp.mockRejectedValue(new Error("Invalid corporation number"));
 
     const user = userEvent.setup();
@@ -48,17 +48,14 @@ describe("OnboardingForm", () => {
       screen.getByRole("textbox", { name: "Corporation Number" }),
       "000000000",
     );
-    expect(checkCorp).not.toHaveBeenCalled();
-
-    await user.tab();
+    expect(checkCorp).toHaveBeenCalledTimes(1);
 
     expect(
       await screen.findByText("Invalid corporation number"),
     ).toBeInTheDocument();
-    expect(checkCorp).toHaveBeenCalledTimes(1);
   });
 
-  it("submits the profile and shows a success toast", async () => {
+  it("checks on completion, submits on Enter, and clears the form", async () => {
     const user = userEvent.setup();
     renderWithProviders(<OnboardingForm />);
 
@@ -75,11 +72,19 @@ describe("OnboardingForm", () => {
       screen.getByRole("textbox", { name: "Corporation Number" }),
       "123456789",
     );
-    await user.tab();
-
     await screen.findByLabelText("Corporation number is valid");
-    await user.click(screen.getByRole("button", { name: "Submit" }));
+
+    await user.keyboard("{Enter}");
 
     expect(await screen.findByText("Profile submitted")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "First Name" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "Last Name" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "Phone Number" })).toHaveValue("");
+    expect(
+      screen.getByRole("textbox", { name: "Corporation Number" }),
+    ).toHaveValue("");
+    expect(
+      screen.queryByText("Corporation number is required"),
+    ).not.toBeInTheDocument();
   });
 });

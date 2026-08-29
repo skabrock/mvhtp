@@ -1,65 +1,52 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
 import { CORP_NUM_LENGTH, PHONE_MAX_LENGTH } from "@/constants";
-import { useCheckCorpNum, useSubmitOnboardingMutation } from "@/hooks";
+import { useCheckCorpNumQuery, useSubmitOnboardingMutation } from "@/hooks";
 import { onboardingSchema, type OnboardingValues } from "@/schemas";
-import type { ProfileDetails } from "@/api";
-import {
-  assistCACode,
-  digitsOnly,
-  digitsWithLeadingPlus,
-  personName,
-} from "@/lib";
+import { digitsOnly, normalizeCanadianPhone, personName } from "@/lib";
 import { CorpNumStatus } from "./CorpNumStatus";
-import { Button, TextField, toast } from "./ui";
-
-const emptyValues: OnboardingValues = {
-  firstName: "",
-  lastName: "",
-  phoneNum: "",
-  corpNum: "",
-};
-
-function normalizeSubmitData(data: OnboardingValues): ProfileDetails {
-  return {
-    firstName: data.firstName,
-    lastName: data.lastName,
-    corporationNumber: data.corpNum,
-    phone: data.phoneNum,
-  };
-}
+import { Button, TextField } from "./ui";
 
 export function OnboardingForm() {
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema),
-    defaultValues: emptyValues,
+    defaultValues: { firstName: "", lastName: "", phoneNum: "", corpNum: "" },
     mode: "onBlur",
     reValidateMode: "onBlur",
   });
 
-  const checkCorp = useCheckCorpNum();
+  const corpNum = useWatch({ control, name: "corpNum" });
+  const corpQuery = useCheckCorpNumQuery(corpNum);
   const onboardingSubmit = useSubmitOnboardingMutation();
 
   function formSubmit(data: OnboardingValues) {
-    if (!checkCorp.isSuccess) {
-      toast.error("Enter a valid corporation number");
-      return;
+    if (!corpQuery.isSuccess) return;
+
+    // Reset form focus state
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
     }
 
-    onboardingSubmit.mutate(normalizeSubmitData(data), {
-      onSuccess: () => {
-        reset(emptyValues);
-        checkCorp.reset();
+    onboardingSubmit.mutate(
+      {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        corporationNumber: data.corpNum,
+        phone: data.phoneNum,
       },
-    });
+      {
+        onSuccess: () => reset(),
+      },
+    );
   }
 
   return (
@@ -91,7 +78,7 @@ export function OnboardingForm() {
           type="tel"
           placeholder="+14165550142"
           required
-          formats={[digitsWithLeadingPlus, assistCACode]}
+          formats={[normalizeCanadianPhone]}
           maxLength={PHONE_MAX_LENGTH}
           error={errors.phoneNum?.message}
           {...register("phoneNum")}
@@ -103,30 +90,22 @@ export function OnboardingForm() {
           inputMode="numeric"
           formats={[digitsOnly]}
           maxLength={CORP_NUM_LENGTH}
-          error={errors.corpNum?.message ?? checkCorp.error?.message}
+          error={errors.corpNum?.message ?? corpQuery.error?.message}
           slots={{
             afterLabel: (
               <CorpNumStatus
-                isFetching={checkCorp.isPending}
-                isSuccess={checkCorp.isSuccess}
-                isError={checkCorp.isError}
+                isFetching={corpQuery.isFetching}
+                isSuccess={corpQuery.isSuccess}
+                isError={corpQuery.isError}
               />
             ),
           }}
-          {...register("corpNum", {
-            onChange: checkCorp.reset,
-            onBlur: (event) => {
-              const corpNum = event.target.value;
-              if (corpNum.length === CORP_NUM_LENGTH) {
-                checkCorp.mutate(corpNum);
-              }
-            },
-          })}
+          {...register("corpNum")}
         />
 
         <Button
           type="submit"
-          disabled={checkCorp.isPending || onboardingSubmit.isPending}
+          disabled={corpQuery.isFetching || onboardingSubmit.isPending}
         >
           Submit
           <ArrowRight className="size-4" aria-hidden />

@@ -5,7 +5,5 @@ export { isPersonName } from "./isPersonName";
 export {
   type TextInputFormat,
   digitsOnly,
-  digitsWithLeadingPlus,
-  assistCACode,
   personName,
 } from "./formatTextInput";

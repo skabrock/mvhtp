@@ -1,2 +1,2 @@
-export { useCheckCorpNum } from "./useCheckCorpNum";
+export { useCheckCorpNumQuery } from "./useCheckCorpNumQuery";
 export { useSubmitOnboardingMutation } from "./useSubmitOnboardingMutation";

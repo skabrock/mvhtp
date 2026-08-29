@@ -1,11 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, type RenderOptions } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { Toaster } from "sonner";
 
-export function renderWithProviders(
-  ui: React.ReactElement,
-  options?: Omit<RenderOptions, "wrapper">,
-) {
+export function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false, gcTime: 0 },
@@ -13,14 +10,10 @@ export function renderWithProviders(
     },
   });
 
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster />
-      </QueryClientProvider>
-    );
-  }
-
-  return render(ui, { wrapper: Wrapper, ...options });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+      <Toaster />
+    </QueryClientProvider>,
+  );
 }
