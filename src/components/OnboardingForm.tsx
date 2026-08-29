@@ -1,13 +1,23 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { onboardingSchema, type OnboardingValues } from "@/schemas";
+import { assistCACode, digitsOnly, digitsWithLeadingPlus, personName } from "@/lib";
 import { Button, TextField, toast } from "./ui";
 
 export function OnboardingForm() {
-  const { register, handleSubmit } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<OnboardingValues>({
+    resolver: zodResolver(onboardingSchema),
+  });
 
   return (
     <form
+      noValidate
       onSubmit={handleSubmit((data) => {
         toast.success("Submitted");
         console.log({ data });
@@ -21,12 +31,16 @@ export function OnboardingForm() {
             label="First Name"
             placeholder="John"
             required
+            formats={[personName]}
+            error={errors.firstName?.message}
             {...register("firstName")}
           />
           <TextField
             label="Last Name"
             placeholder="Doe"
             required
+            formats={[personName]}
+            error={errors.lastName?.message}
             {...register("lastName")}
           />
         </div>
@@ -34,14 +48,21 @@ export function OnboardingForm() {
         <TextField
           label="Phone Number"
           type="tel"
-          placeholder="+1 (416) 555-0142"
+          placeholder="+14165550142"
           required
+          formats={[digitsWithLeadingPlus, assistCACode]}
+          maxLength={12}
+          error={errors.phoneNum?.message}
           {...register("phoneNum")}
         />
         <TextField
           label="Corporation Number"
           placeholder="424242420"
           required
+          inputMode="numeric"
+          formats={[digitsOnly]}
+          maxLength={9}
+          error={errors.corpNum?.message}
           {...register("corpNum")}
         />
 

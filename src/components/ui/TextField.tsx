@@ -2,10 +2,12 @@
 
 import { useId, useState } from "react";
 import clsx from "clsx";
+import type { InputSanitizer } from "@/lib";
 
 interface TextFieldProps extends React.ComponentProps<"input"> {
   label: string;
   error?: string;
+  formats?: InputSanitizer[];
 }
 
 export function TextField({
@@ -15,6 +17,8 @@ export function TextField({
   id,
   required,
   disabled,
+  formats,
+  maxLength,
   defaultValue,
   onChange,
   onFocus,
@@ -28,7 +32,13 @@ export function TextField({
   const showClear = isFocused && text.length > 0 && !disabled;
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setText(event.target.value);
+    let value = event.target.value;
+    for (const format of formats ?? []) {
+      value = format(value, text);
+    }
+    if (maxLength) value = value.slice(0, Number(maxLength));
+    event.target.value = value;
+    setText(value);
     onChange?.(event);
   }
 
@@ -70,6 +80,7 @@ export function TextField({
           id={inputId}
           required={required}
           disabled={disabled}
+          maxLength={maxLength}
           value={text}
           aria-invalid={Boolean(error)}
           onChange={handleChange}
